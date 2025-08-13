@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ../ofx-env/bin/activate
+
 set -e
 
 # Build everything with Conan and CMake
@@ -56,6 +58,8 @@ ARGS="$@"
 echo "Building OpenFX $BUILDTYPE in build/ with ${GENERATOR:-conan platform default generator}, $ARGS"
 
 CONAN_VERSION=$(conan -v | sed -e 's/Conan version //g')
+echo "$CONAN_VERSION"
+
 CONAN_MAJOR_VERSION=${CONAN_VERSION:0:1}
 
 PRESET_NAME=
@@ -74,6 +78,7 @@ if [[ ${CONAN_MAJOR_VERSION} == "1" ]]; then
     PRESET_NAME=${PRESET_BASE_NAME}
 elif [[ ${CONAN_MAJOR_VERSION} == "2" ]]; then
     PRESET_NAME=conan-${PRESET_BASE_NAME}
+    echo "$PRESET_NAME"
 else
     echo "Unexpected conan version ${CONAN_VERSION}"
     exit 1
@@ -115,7 +120,7 @@ fi
 # Install dependencies, set up build dir, and generate build files.
 echo === Running conan to install dependencies
 [[ $USE_OPENCL ]] && conan_opts="$conan_opts -o use_opencl=True"
-conan install ${GENERATOR_OPTION} -s build_type=$BUILDTYPE -pr:b=default --build=missing . $conan_opts
+conan install ${GENERATOR_OPTION} -s build_type=$BUILDTYPE --profile:host=/home/marc/.conan2/profiles/default --profile:build=/home/marc/.conan2/profiles/default --build=missing . $conan_opts
 
 echo === Running cmake
 # Generate the build files
